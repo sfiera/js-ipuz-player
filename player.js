@@ -20,9 +20,12 @@
             across ? x++ : y++;
         }
 
-        cells.forEach(function (cell) {
-            cell.classList.add(this.class);
-        }, this);
+        if (isPrimary) {
+            cells[this.offset].classList.add('primary');
+            cells.forEach(function (cell) {
+                cell.classList.add(this.class);
+            }, this);
+        }
 
         function updateDone() {
             var done = cells.every(function (cell) {
@@ -37,6 +40,7 @@
 
         this.remove = function () {
             if (clue) clue.classList.remove(isPrimary ? 'selected' : 'active');
+            cells[this.offset].classList.remove('primary');
             cells.forEach(function (cell) {
                 cell.classList.remove(this.class);
             }, this);
@@ -53,12 +57,21 @@
             cells[this.offset].querySelector('.letter').textContent = letter;
             updateDone();
             this.offset = (this.offset + 1) % cells.length;
+            cells[this.offset].classList.add('primary');
         };
 
         this.togglePrimary = function () {
             isPrimary = !isPrimary;
             clue.classList.remove(isPrimary ? 'active' : 'selected');
             clue.classList.add(isPrimary ? 'selected' : 'active');
+            cells.forEach(function (cell) {
+                cell.classList.remove(this.class);
+            }, this);
+            if (isPrimary) {
+                cells.forEach(function (cell) {
+                    cell.classList.add(this.class);
+                }, this);
+            }
         };
 
         this.solve = function (solution) {
