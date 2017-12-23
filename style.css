@@ -1,32 +1,31 @@
 body {
     background: #ddd;
     color: black;
-    font-family: Fira Sans, sans-serif;
-    font-size: 10px;
+    font-family: sans-serif;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
 }
 
 h1, h2 {
-    font-size: 16px;
+    font-size: 150%;
     margin: 4px 0;
 }
 
 .puzzle {
-    border-top: 1px solid black;
-    border-left: 1px solid black;
-    border-spacing: 1;
+    border: 3px solid black;
     border-collapse: collapse;
 }
 
 .puzzle td {
     background: white;
-    width: 27px;
-    height: 27px;
-    padding: 0;
+    width: 2em;
+    height: 2em;
+    padding: 0.125em 0 0 0;
     position: relative;
     text-align: center;
+    vertical-align: middle;
+    border: 1px solid #666;
 }
 .puzzle td.block {
     background: black;
@@ -36,12 +35,12 @@ h1, h2 {
 .puzzle td.empty { visibility: hidden; }
 
 .puzzle td .nr {
-    font-size: 9px;
-    line-height: 9px;
-    padding: 1px 2px 0;
+    font-size: 50%;
+    line-height: 1em;
+    padding: 1px;
     position: absolute;
     left: 0;
-    top: 1px;
+    top: 0;
     background: white;
     z-index: 1;
 }
@@ -49,12 +48,9 @@ h1, h2 {
 .puzzle td .letter {
     position: relative;
     z-index: 2;
-    border-right: 1px solid black;
-    border-bottom: 1px solid black;
-    width: 26px;
-    height: 24px;
-    padding-top: 2px;
-    display: block;
+    width: 1.5em;
+    height: 1.5em;
+    font-size: 125%;
 }
 
 .puzzle td.circle::before {
@@ -67,17 +63,17 @@ h1, h2 {
 }
 
 .clues {
-    max-width: 30em;
+    max-width: 15em;
     padding: 0 8px;
 }
 
 .clues ol {
-    padding: 0 0 0 18px;
-    margin: 0;
+    padding: 0 0 0 1em;
+    margin: 0 1em;
 }
 
 .clues li {
-    padding: 0 2px;
+    padding: 0.125em 0.25em;
 }
 
 .clues li.done { color: #555; }
