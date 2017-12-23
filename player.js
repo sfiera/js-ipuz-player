@@ -165,6 +165,7 @@
                 return;
             }
 
+            event.preventDefault();
             if (event.keyCode == keys.LEFT || event.keyCode == keys.RIGHT) {
                 swapPrimary();
             }
