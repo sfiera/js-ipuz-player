@@ -152,7 +152,7 @@
             updateSecondarySelection(selections[0]);
         }
 
-        selectClue(document.querySelector('.clue.down:first-of-type'));
+        selectClue(document.querySelector('.clue.across:first-of-type'));
 
         document.onclick = function (event) {
             if (event.target.classList.contains('clue')) {

@@ -23,8 +23,8 @@ class HtmlGenerator:
 <link rel="stylesheet" href="style.css">
 </head><body>
 <div><h1>{title}</h1>{puzzle}{description}</div>
-{down}
 {across}
+{down}
 <script src="player.js"></script>
 <script>new IpuzPlayer({solution})</script></body></html>
 """
@@ -117,8 +117,8 @@ class HtmlGenerator:
             title=self.puzzle['title'],
             puzzle=self.genPuzzle(),
             description=self.genDescription(),
-            down=self.genClueBlock('Down'),
             across=self.genClueBlock('Across'),
+            down=self.genClueBlock('Down'),
             solution=self.genSolution()
         )
 
