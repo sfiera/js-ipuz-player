@@ -1,18 +1,16 @@
 (function () {
     'use strict';
 
-    function Selection(clue, x, y, across, primary) {
-        var cells = [], isPrimary = !primary;
+    function Selection(clue, x, y, across) {
+        var cells = [];
 
-        this.x = x;
-        this.y = y;
-        this.offset = primary ? across ? primary.x - x : primary.y - y : 0;
+        this.origin = [x, y];
+        this.offset = 0;
         this.across = across;
-        this.class = across ? 'across' : 'down';
         this.clue = clue;
 
         if (clue) {
-            clue.classList.add(isPrimary ? 'selected' : 'active');
+            clue.classList.add('selected');
         }
 
         while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
@@ -20,12 +18,10 @@
             across ? x++ : y++;
         }
 
-        if (isPrimary) {
-            cells[this.offset].classList.add('primary');
-            cells.forEach(function (cell) {
-                cell.classList.add(this.class);
-            }, this);
-        }
+        cells[this.offset].classList.add('primary');
+        cells.forEach(function (cell) {
+            cell.classList.add('secondary');
+        }, this);
 
         function updateDone() {
             var done = cells.every(function (cell) {
@@ -38,11 +34,19 @@
             }
         }
 
+        this.position = function () {
+            if (this.across) {
+                return [this.origin[0] + this.offset, this.origin[1]];
+            } else {
+                return [this.origin[0], this.origin[1] + this.offset];
+            }
+        };
+
         this.remove = function () {
-            if (clue) clue.classList.remove(isPrimary ? 'selected' : 'active');
+            if (clue) clue.classList.remove('selected');
             cells[this.offset].classList.remove('primary');
             cells.forEach(function (cell) {
-                cell.classList.remove(this.class);
+                cell.classList.remove('secondary');
             }, this);
         };
 
@@ -56,26 +60,13 @@
         this.enterLetter = function (letter) {
             cells[this.offset].querySelector('.letter').textContent = letter;
             updateDone();
+            cells[this.offset].classList.remove('primary');
             this.offset = (this.offset + 1) % cells.length;
             cells[this.offset].classList.add('primary');
         };
 
-        this.togglePrimary = function () {
-            isPrimary = !isPrimary;
-            clue.classList.remove(isPrimary ? 'active' : 'selected');
-            clue.classList.add(isPrimary ? 'selected' : 'active');
-            cells.forEach(function (cell) {
-                cell.classList.remove(this.class);
-            }, this);
-            if (isPrimary) {
-                cells.forEach(function (cell) {
-                    cell.classList.add(this.class);
-                }, this);
-            }
-        };
-
         this.solve = function (solution) {
-            var x = this.x, y = this.y;
+            var x = this.origin[0], y = this.origin[1];
             cells.forEach(function (cell) {
                 cell.querySelector('.letter').textContent = solution[y][x];
                 across ? x++ : y++;
@@ -86,83 +77,64 @@
 
     window.IpuzPlayer = function (solution) {
         var keys = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, INSERT: 45, DELETE: 46, A: 65, Z: 90},
-            selectedClue,
-            selections = [];
+            selection = null;
 
         function selectClue(clue) {
             var index = clue.dataset['index'].split(','),
                 across = clue.classList.contains('across');
 
-            selections.forEach(function (selection) {
+            if (selection !== null) {
                 selection.remove();
-            });
+            }
 
-            selectedClue = clue;
-            selections = [createSelection(+index[0], +index[1], across)];
-            updateSecondarySelection(selections[0]);
+            selection = createSelection(+index[0], +index[1], across);
         }
 
-        function createSelection(x, y, across, primary) {
-            if (primary) {
-                if (across) {
-                    y += primary.offset;
-                    while (document.querySelector('td[data-index="' + [x-1, y] + '"] .letter')) {
-                        x--;
-                    }
-                } else {
-                    x += primary.offset;
-                    while (document.querySelector('td[data-index="' + [x, y-1] + '"] .letter')) {
-                        y--;
-                    }
-                }
-            }
+        function createSelection(x, y, across) {
             var selector = '.clue.' + (across ? 'across' : 'down') + '[data-index="' + [x, y] + '"]';
-            return new Selection(document.querySelector(selector), x, y, across, primary);
-        }
-
-        function updateSecondarySelection(primary) {
-            if (selections[1]) {
-                selections[1].remove();
-            }
-            selections[1] = createSelection(primary.x, primary.y, !primary.across, primary);
+            return new Selection(document.querySelector(selector), x, y, across);
         }
 
         function clearSelection() {
-            selections[0].clear();
-            updateSecondarySelection(selections[0]);
+            selection.clear();
         }
 
         function solveSelection() {
-            selections[0].solve(solution);
+            selection.solve(solution);
         }
 
         function swapPrimary() {
-            if (selections[1].clue) {
-                selectedClue = selections[1].clue;
-                selections.forEach(function (selection) { selection.togglePrimary(); });
-                selections.push(selections.shift());
+            var position = selection.position(),
+                x = position[0],
+                y = position[1];
+            while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
+                if (document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + '[data-index="' + [x, y] + '"]')) {
+                    selection.remove();
+                    selection = createSelection(x, y, !selection.across);
+                    return;
+                }
+                selection.across ? y-- : x--;
             }
         }
 
         function selectPrevious() {
-            var clue = selectedClue.previousSibling;
+            var clue = selection.clue.previousSibling;
             if (!clue) {
-                clue = document.querySelector('.clue.' + selections[0].class + ':last-of-type');
+                clue = document.querySelector('.clue.' + selection.class + ':last-of-type');
             }
             selectClue(clue);
         }
 
         function selectNext() {
-            var clue = selectedClue.nextSibling;
+            var clue = selection.clue.nextSibling;
             if (!clue) {
-                clue = document.querySelector('.clue.' + selections[0].class + ':first-of-type');
+                clue = document.querySelector('.clue.' + selection.class + ':first-of-type');
             }
             selectClue(clue);
         }
 
         function enterLetter(letter) {
-            selections[0].enterLetter(letter);
-            updateSecondarySelection(selections[0]);
+            selection.enterLetter(letter);
         }
 
         selectClue(document.querySelector('.clue.across:first-of-type'));
