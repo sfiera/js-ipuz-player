@@ -82,7 +82,7 @@
     }
 
     window.IpuzPlayer = function (solution) {
-        var keys = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, INSERT: 45, DELETE: 46, A: 65, Z: 90},
+        var keys = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, RETURN: 13, INSERT: 45, DELETE: 46, A: 65, Z: 90},
             selection = null;
 
         function selectClue(clue) {
@@ -148,7 +148,7 @@
         function selectPrevious() {
             var clue = selection.clue.previousSibling;
             if (!clue) {
-                clue = document.querySelector('.clue.' + selection.class + ':last-of-type');
+                clue = document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + ':last-of-type');
             }
             selectClue(clue);
         }
@@ -156,7 +156,7 @@
         function selectNext() {
             var clue = selection.clue.nextSibling;
             if (!clue) {
-                clue = document.querySelector('.clue.' + selection.class + ':first-of-type');
+                clue = document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + ':first-of-type');
             }
             selectClue(clue);
         }
@@ -195,6 +195,14 @@
                         swapPrimary();
                     } else {
                         moveCursor([0, (event.keyCode == keys.UP) ? -1 : +1]);
+                    }
+                    break;
+
+                case keys.RETURN:
+                    if (event.shiftKey) {
+                        selectPrevious();
+                    } else {
+                        selectNext();
                     }
                     break;
 
