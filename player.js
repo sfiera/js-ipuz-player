@@ -93,12 +93,22 @@
                 selection.remove();
             }
 
-            selection = createSelection([+index[0], +index[1]], null, across);
+            selection = createSelection([+index[0], +index[1]], across);
         }
 
-        function createSelection(origin, position, across) {
-            var selector = '.clue.' + (across ? 'across' : 'down') + '[data-index="' + origin + '"]';
-            return new Selection(document.querySelector(selector), origin, position, across);
+        function createSelection(cursor, across) {
+            var x = cursor[0],
+                y = cursor[1],
+                clue;
+            while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
+                clue = document.querySelector(
+                        '.clue.' + (across ? 'across' : 'down') + '[data-index="' + [x, y] + '"]');
+                if (clue) {
+                    break;
+                }
+                across ? x-- : y--;
+            }
+            return new Selection(clue, [x, y], cursor, across);
         }
 
         function clearSelection() {
@@ -115,10 +125,23 @@
             while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
                 if (document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + '[data-index="' + [x, y] + '"]')) {
                     selection.remove();
-                    selection = createSelection([x, y], selection.cursor, !selection.across);
+                    selection = createSelection(selection.cursor, !selection.across);
                     return;
                 }
                 selection.across ? y-- : x--;
+            }
+        }
+
+        function moveCursor(offset) {
+            var newCursor = [selection.cursor[0] + offset[0], selection.cursor[1] + offset[1]];
+            while (document.querySelector('td[data-index="' + newCursor + '"]')) {
+                if (document.querySelector('td[data-index="' + newCursor + '"] .letter')) {
+                    selection.remove();
+                    selection = createSelection(newCursor, selection.across);
+                    return;
+                }
+                newCursor[0] += offset[0];
+                newCursor[1] += offset[1];
             }
         }
 
@@ -151,28 +174,43 @@
         };
 
         document.onkeydown = function (event) {
-            if (event.altKey || event.ctrlKey || event.shiftKey || event.metaKey) {
+            if (event.altKey || event.ctrlKey || event.metaKey) {
                 return;
             }
 
             event.preventDefault();
-            if (event.keyCode == keys.LEFT || event.keyCode == keys.RIGHT) {
-                swapPrimary();
-            }
-            if (event.keyCode == keys.UP) {
-                selectPrevious();
-            }
-            if (event.keyCode == keys.DOWN) {
-                selectNext();
-            }
-            if (event.keyCode >= keys.A && event.keyCode <= keys.Z) {
-                enterLetter(String.fromCharCode(event.keyCode));
-            }
-            if (event.keyCode == keys.INSERT) {
-                solveSelection();
-            }
-            if (event.keyCode == keys.DELETE) {
-                clearSelection();
+            switch (event.keyCode) {
+                case keys.LEFT:
+                case keys.RIGHT:
+                    if (!event.shiftKey && !selection.across) {
+                        swapPrimary();
+                    } else {
+                        moveCursor([(event.keyCode == keys.LEFT) ? -1 : +1, 0]);
+                    }
+                    break;
+
+                case keys.UP:
+                case keys.DOWN:
+                    if (!event.shiftKey && selection.across) {
+                        swapPrimary();
+                    } else {
+                        moveCursor([0, (event.keyCode == keys.UP) ? -1 : +1]);
+                    }
+                    break;
+
+                case keys.INSERT:
+                    solveSelection();
+                    break;
+
+                case keys.DELETE:
+                    clearSelection();
+                    break;
+
+                default:
+                    if (event.keyCode >= keys.A && event.keyCode <= keys.Z) {
+                        enterLetter(String.fromCharCode(event.keyCode));
+                    }
+                    break;
             }
         };
     };
