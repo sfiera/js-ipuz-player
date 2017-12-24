@@ -1,11 +1,15 @@
 (function () {
     'use strict';
 
-    function Selection(clue, x, y, across) {
+    function Selection(clue, origin, cursor, across) {
         var cells = [];
 
-        this.origin = [x, y];
-        this.offset = 0;
+        this.origin = origin;
+        if (cursor) {
+            this.cursor = cursor;
+        } else {
+            this.cursor = origin;
+        }
         this.across = across;
         this.clue = clue;
 
@@ -13,12 +17,17 @@
             clue.classList.add('selected');
         }
 
+        var x = origin[0], y = origin[1];
         while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
             cells.push(document.querySelector('td[data-index="' + [x, y] + '"]'));
             across ? x++ : y++;
         }
 
-        cells[this.offset].classList.add('primary');
+        this.offset = function () {
+            return (this.cursor[0] - this.origin[0]) + (this.cursor[1] - this.origin[1]);
+        }
+
+        cells[this.offset()].classList.add('primary');
         cells.forEach(function (cell) {
             cell.classList.add('secondary');
         }, this);
@@ -34,17 +43,9 @@
             }
         }
 
-        this.position = function () {
-            if (this.across) {
-                return [this.origin[0] + this.offset, this.origin[1]];
-            } else {
-                return [this.origin[0], this.origin[1] + this.offset];
-            }
-        };
-
         this.remove = function () {
             if (clue) clue.classList.remove('selected');
-            cells[this.offset].classList.remove('primary');
+            cells[this.offset()].classList.remove('primary');
             cells.forEach(function (cell) {
                 cell.classList.remove('secondary');
             }, this);
@@ -58,11 +59,16 @@
         };
 
         this.enterLetter = function (letter) {
-            cells[this.offset].querySelector('.letter').textContent = letter;
+            cells[this.offset()].querySelector('.letter').textContent = letter;
             updateDone();
-            cells[this.offset].classList.remove('primary');
-            this.offset = (this.offset + 1) % cells.length;
-            cells[this.offset].classList.add('primary');
+            cells[this.offset()].classList.remove('primary');
+            var newOffset = (this.offset() + 1) % cells.length;
+            if (this.across) {
+                this.cursor = [this.origin[0] + newOffset, this.origin[1]];
+            } else {
+                this.cursor = [this.origin[0], this.origin[1] + newOffset];
+            }
+            cells[this.offset()].classList.add('primary');
         };
 
         this.solve = function (solution) {
@@ -87,12 +93,12 @@
                 selection.remove();
             }
 
-            selection = createSelection(+index[0], +index[1], across);
+            selection = createSelection([+index[0], +index[1]], null, across);
         }
 
-        function createSelection(x, y, across) {
-            var selector = '.clue.' + (across ? 'across' : 'down') + '[data-index="' + [x, y] + '"]';
-            return new Selection(document.querySelector(selector), x, y, across);
+        function createSelection(origin, position, across) {
+            var selector = '.clue.' + (across ? 'across' : 'down') + '[data-index="' + origin + '"]';
+            return new Selection(document.querySelector(selector), origin, position, across);
         }
 
         function clearSelection() {
@@ -104,13 +110,12 @@
         }
 
         function swapPrimary() {
-            var position = selection.position(),
-                x = position[0],
-                y = position[1];
+            var x = selection.cursor[0],
+                y = selection.cursor[1];
             while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
                 if (document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + '[data-index="' + [x, y] + '"]')) {
                     selection.remove();
-                    selection = createSelection(x, y, !selection.across);
+                    selection = createSelection([x, y], selection.cursor, !selection.across);
                     return;
                 }
                 selection.across ? y-- : x--;
