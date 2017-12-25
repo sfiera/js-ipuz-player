@@ -101,7 +101,7 @@
         };
     }
 
-    window.IpuzPlayer = function (solution) {
+    window.IpuzPlayer = function (ipuz) {
         var keys = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, RETURN: 13, TAB: 9, INSERT: 45, BACKSPACE: 8, DELETE: 46, A: 65, Z: 90},
             selection = null;
 
@@ -136,7 +136,7 @@
         }
 
         function solveSelection() {
-            selection.solve(solution);
+            selection.solve(ipuz.solution);
         }
 
         function swapPrimary() {

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-import sys, json
+import json
+import sys
 
 USAGE = 'Usage: {} <file>'.format(sys.argv[0])
 
@@ -26,7 +27,7 @@ class HtmlGenerator:
 {across}
 {down}
 <script src="player.js"></script>
-<script>new IpuzPlayer({solution})</script></body></html>
+<script>new IpuzPlayer({json})</script></body></html>
 """
 
     displayedFields = [
@@ -119,7 +120,7 @@ class HtmlGenerator:
             description=self.genDescription(),
             across=self.genClueBlock('Across'),
             down=self.genClueBlock('Down'),
-            solution=self.genSolution()
+            json=json.dumps(self.puzzle)
         )
 
 if len(sys.argv) < 2:
@@ -127,10 +128,6 @@ if len(sys.argv) < 2:
     exit(1)
 
 with open(sys.argv[1]) as file:
-    try:
-        import ipuz
-        puzzle = ipuz.core.read(file.read())
-    except:
-        puzzle = json.load(file)
+    puzzle = json.load(file)
 
 sys.stdout.write(HtmlGenerator(puzzle).genHtml())
