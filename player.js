@@ -12,6 +12,7 @@
         }
         this.across = across;
         this.clue = clue;
+        this.cursorUsed = false;
 
         if (clue) {
             clue.classList.add('selected');
@@ -59,6 +60,7 @@
         };
 
         this.enterLetter = function (letter) {
+            this.cursorUsed = true;
             cells[this.offset()].querySelector('.letter').textContent = letter;
             updateDone();
             cells[this.offset()].classList.remove('primary');
@@ -69,6 +71,24 @@
                 this.cursor = [this.origin[0], this.origin[1] + newOffset];
             }
             cells[this.offset()].classList.add('primary');
+        };
+
+        this.backspace = function () {
+            if (this.cursorUsed) {
+                var newOffset = this.offset() - 1;
+                if (newOffset < 0) {
+                    return;
+                }
+                cells[this.offset()].classList.remove('primary');
+                if (this.across) {
+                    this.cursor = [this.origin[0] + newOffset, this.origin[1]];
+                } else {
+                    this.cursor = [this.origin[0], this.origin[1] + newOffset];
+                }
+                cells[this.offset()].classList.add('primary');
+            }
+            cells[this.offset()].querySelector('.letter').textContent = '';
+            this.cursorUsed = true;
         };
 
         this.solve = function (solution) {
@@ -82,7 +102,7 @@
     }
 
     window.IpuzPlayer = function (solution) {
-        var keys = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, RETURN: 13, TAB: 9, INSERT: 45, DELETE: 46, A: 65, Z: 90},
+        var keys = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, RETURN: 13, TAB: 9, INSERT: 45, BACKSPACE: 8, DELETE: 46, A: 65, Z: 90},
             selection = null;
 
         function selectClue(clue) {
@@ -208,6 +228,10 @@
 
                 case keys.TAB:
                     swapPrimary();
+                    break;
+
+                case keys.BACKSPACE:
+                    selection.backspace();
                     break;
 
                 case keys.INSERT:
