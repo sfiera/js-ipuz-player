@@ -86,6 +86,7 @@ class HtmlGenerator:
         elif cell == self.block:
             classes.append('block')
         else:
+            classes.append('cell')
             letter = html('span', '', {'class': 'letter'})
 
         attributes = {'data-index': '{},{}'.format(x, y)}

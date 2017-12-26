@@ -1,7 +1,10 @@
 (function () {
     'use strict';
 
-    function Selection(clue, origin, cursor, across) {
+    const ACROSS = 'across',
+          DOWN = 'down';
+
+    function Selection(clue, origin, cursor, direction) {
         var cells = [];
 
         this.origin = origin;
@@ -10,7 +13,7 @@
         } else {
             this.cursor = origin;
         }
-        this.across = across;
+        this.direction = direction;
         this.clue = clue;
         this.cursorUsed = false;
 
@@ -21,7 +24,7 @@
         var x = origin[0], y = origin[1];
         while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
             cells.push(document.querySelector('td[data-index="' + [x, y] + '"]'));
-            across ? x++ : y++;
+            (direction === ACROSS) ? x++ : y++;
         }
 
         this.offset = function () {
@@ -65,7 +68,7 @@
             updateDone();
             cells[this.offset()].classList.remove('primary');
             var newOffset = (this.offset() + 1) % cells.length;
-            if (this.across) {
+            if (this.direction === ACROSS) {
                 this.cursor = [this.origin[0] + newOffset, this.origin[1]];
             } else {
                 this.cursor = [this.origin[0], this.origin[1] + newOffset];
@@ -80,7 +83,7 @@
                     return;
                 }
                 cells[this.offset()].classList.remove('primary');
-                if (this.across) {
+                if (this.direction === ACROSS) {
                     this.cursor = [this.origin[0] + newOffset, this.origin[1]];
                 } else {
                     this.cursor = [this.origin[0], this.origin[1] + newOffset];
@@ -95,7 +98,7 @@
             var x = this.origin[0], y = this.origin[1];
             cells.forEach(function (cell) {
                 cell.querySelector('.letter').textContent = solution[y][x];
-                across ? x++ : y++;
+                (direction === ACROSS) ? x++ : y++;
             });
             updateDone();
         };
@@ -107,28 +110,40 @@
 
         function selectClue(clue) {
             var index = clue.dataset['index'].split(','),
-                across = clue.classList.contains('across');
+                direction = clue.classList.contains('across') ? ACROSS : DOWN;
 
             if (selection !== null) {
                 selection.remove();
             }
 
-            selection = createSelection([+index[0], +index[1]], across);
+            selection = createSelection([+index[0], +index[1]], direction);
         }
 
-        function createSelection(cursor, across) {
+        function selectCell(cell) {
+            var index = cell.dataset['index'].split(',');
+            var location = [+index[0], +index[1]];
+            console.log(location, selection.cursor);
+            if ((location[0] === selection.cursor[0]) && (location[1] === selection.cursor[1])) {
+                swapPrimary();
+            } else {
+                selection.remove();
+                selection = createSelection(location, selection.direction);
+            }
+        }
+
+        function createSelection(cursor, direction) {
             var x = cursor[0],
                 y = cursor[1],
                 clue;
             while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
                 clue = document.querySelector(
-                        '.clue.' + (across ? 'across' : 'down') + '[data-index="' + [x, y] + '"]');
+                        '.clue.' + direction + '[data-index="' + [x, y] + '"]');
                 if (clue) {
                     break;
                 }
-                across ? x-- : y--;
+                (direction === ACROSS) ? x-- : y--;
             }
-            return new Selection(clue, [x, y], cursor, across);
+            return new Selection(clue, [x, y], cursor, direction);
         }
 
         function clearSelection() {
@@ -143,12 +158,12 @@
             var x = selection.cursor[0],
                 y = selection.cursor[1];
             while (document.querySelector('td[data-index="' + [x, y] + '"] .letter')) {
-                if (document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + '[data-index="' + [x, y] + '"]')) {
+                if (document.querySelector('.clue.' + selection.direction + '[data-index="' + [x, y] + '"]')) {
                     selection.remove();
-                    selection = createSelection(selection.cursor, !selection.across);
+                    selection = createSelection(selection.cursor, (selection.direction === ACROSS) ? DOWN : ACROSS);
                     return;
                 }
-                selection.across ? y-- : x--;
+                (selection.direction === ACROSS) ? x-- : y--;
             }
         }
 
@@ -157,7 +172,7 @@
             while (document.querySelector('td[data-index="' + newCursor + '"]')) {
                 if (document.querySelector('td[data-index="' + newCursor + '"] .letter')) {
                     selection.remove();
-                    selection = createSelection(newCursor, selection.across);
+                    selection = createSelection(newCursor, selection.direction);
                     return;
                 }
                 newCursor[0] += offset[0];
@@ -168,7 +183,7 @@
         function selectPrevious() {
             var clue = selection.clue.previousSibling;
             if (!clue) {
-                clue = document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + ':last-of-type');
+                clue = document.querySelector('.clue.' + selection.direction + ':last-of-type');
             }
             selectClue(clue);
         }
@@ -176,7 +191,7 @@
         function selectNext() {
             var clue = selection.clue.nextSibling;
             if (!clue) {
-                clue = document.querySelector('.clue.' + (selection.across ? 'down' : 'across') + ':first-of-type');
+                clue = document.querySelector('.clue.' + selection.direction + ':first-of-type');
             }
             selectClue(clue);
         }
@@ -187,11 +202,18 @@
 
         selectClue(document.querySelector('.clue.across:first-of-type'));
 
-        document.onclick = function (event) {
-            if (event.target.classList.contains('clue')) {
-                selectClue(event.target);
-            }
-        };
+        document.querySelectorAll(".clue").forEach(function(target) {
+            target.addEventListener("click", function(e) {
+                e.preventDefault();
+                selectClue(target);
+            });
+        });
+        document.querySelectorAll(".cell").forEach(function(target) {
+            target.addEventListener("click", function(e) {
+                e.preventDefault();
+                selectCell(target);
+            });
+        });
 
         document.onkeydown = function (event) {
             if (event.altKey || event.ctrlKey || event.metaKey) {
@@ -202,7 +224,7 @@
             switch (event.keyCode) {
                 case keys.LEFT:
                 case keys.RIGHT:
-                    if (!event.shiftKey && !selection.across) {
+                    if (!event.shiftKey && (selection.direction === DOWN)) {
                         swapPrimary();
                     } else {
                         moveCursor([(event.keyCode == keys.LEFT) ? -1 : +1, 0]);
@@ -211,7 +233,7 @@
 
                 case keys.UP:
                 case keys.DOWN:
-                    if (!event.shiftKey && selection.across) {
+                    if (!event.shiftKey && (selection.direction === ACROSS)) {
                         swapPrimary();
                     } else {
                         moveCursor([0, (event.keyCode == keys.UP) ? -1 : +1]);
