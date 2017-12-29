@@ -73,6 +73,7 @@ h1, h2 {
 
 .clues li {
     padding: 0.125em 0.25em;
+    line-height: 1.15em;
 }
 
 .clues li.done { color: #555; }
