@@ -23,7 +23,7 @@ class HtmlGenerator:
 <link rel="stylesheet" href="//code.cdn.mozilla.net/fonts/fira.css">
 <link rel="stylesheet" href="style.css">
 </head><body>
-<div><h1>{title}</h1>{puzzle}{description}</div>
+<div><h1>{title}</h1>{puzzle}</div>
 {across}
 {down}
 <script src="player.js"></script>
