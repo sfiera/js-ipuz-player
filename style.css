@@ -6,6 +6,40 @@ body {
     flex-direction: row;
     flex-wrap: wrap;
 }
+body.calendar {
+    display: block;
+}
+body.calendar table {
+    margin-bottom: 1em;
+}
+body.calendar td {
+    padding: 0;
+}
+body.calendar a:link {
+    display: block;
+    width: 2em;
+    height: 2em;
+    text-decoration: none;
+}
+body.calendar a:link:before {
+    content: "";
+    position: absolute;
+    top: 0.5em;
+    bottom: 0.5em;
+    left: 0.5em;
+    right: 0.5em;
+    border: 2px solid black;
+    border-radius: 50%;
+}
+
+#credit {
+    margin-top: 0.5em;
+    font-size: 75%;
+}
+#credit a {
+    text-decoration: none;
+    color: black;
+}
 
 h1, h2 {
     font-size: 150%;
@@ -29,12 +63,14 @@ h1, h2 {
 }
 .puzzle td.block {
     background: black;
+    color: #999;
     -webkit-print-color-adjust: exact;
 }
 
 .puzzle td.empty { visibility: hidden; }
 
 .puzzle td .nr {
+    color: black;
     font-size: 50%;
     line-height: 1em;
     padding: 1px;
@@ -52,13 +88,15 @@ h1, h2 {
     font-size: 125%;
 }
 
-.puzzle td.circle::before {
-    content: '\25CB';
-    font-size: 26px;
-    line-height: 26px;
+.puzzle td.circle:before {
+    content: "";
     position: absolute;
     top: 0;
-    left: 2px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border: 1px solid #333;
+    border-radius: 50%;
 }
 
 .clues {
