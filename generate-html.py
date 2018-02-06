@@ -20,13 +20,12 @@ def wrap(tag, attributes = {}):
 
 class HtmlGenerator:
     template = """<html><head><meta charset="utf-8">
-<link rel="stylesheet" href="//code.cdn.mozilla.net/fonts/fira.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../style.css">
 </head><body>
-<div><h1>{title}</h1>{puzzle}</div>
+<div><h1>{title}</h1>{puzzle}<div id="credit"><a href="https://twotaled.com/cross/">twotaled.com/cross/</a></div></div>
 {across}
 {down}
-<script src="player.js"></script>
+<script src="../../player.js"></script>
 <script>new IpuzPlayer({json})</script></body></html>
 """
 
